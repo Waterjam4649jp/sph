@@ -1,0 +1,3 @@
+/home/water/dev/prj/embedded/pico-sph/sph/build/CMakeFiles/main.dir
+/home/water/dev/prj/embedded/pico-sph/sph/build/CMakeFiles/edit_cache.dir
+/home/water/dev/prj/embedded/pico-sph/sph/build/CMakeFiles/rebuild_cache.dir
