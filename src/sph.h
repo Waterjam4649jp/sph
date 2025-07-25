@@ -21,7 +21,7 @@ void init_consts(Particle& p,
                  const std::array<double, 2>& position, 
                  const std::array<double, 2>& velocity);
 
-// todo! : 線形探索をグリッド探索に変更する
+// todo! : 線形探索を近傍粒子探索に変更する
 double W(double r, double h);
 std::array<double, 2> nabla_W(const Particle& p, const Particle& other);
 double ρ(const Particle& p, const std::vector<Particle>& particles);
