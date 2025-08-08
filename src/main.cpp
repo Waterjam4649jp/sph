@@ -10,6 +10,8 @@ int main() {
     sf::RenderWindow window(sf::VideoMode(width, height), "Circle List");
     std::vector<sf::CircleShape> circles;
 
+    bool simulationRunning = false; // シミュレーション実行状態のフラグ
+
     int gridSize = 7; // Grid size for particle placement
     int totalParticles = gridSize * gridSize; // Total number of particles
     std::vector<Particle> particles(totalParticles);
@@ -20,10 +22,10 @@ int main() {
             int index = i * gridSize + j;
             // Initialize each particle with mass, kernel radius, position, and velocity
             init_consts(particles[index],
-                        1.0,                                   // mass
-                        50.0,                                  // kernel radius
-                        std::array<double, 2>{10.0 * i, 10.0 * j},  // position
-                        std::array<double, 2>{0.0, 0.0});      // velocity
+                        1.0,                                        // mass
+                        50.0,                                       // kernel radius
+                        std::array<double, 2>{30.0 * (i+1), 10.0 * j},  // position
+                        std::array<double, 2>{0.0, 0.0});           // velocity
             updatePosition(particles[index]); // Update position based on velocity and delta time
         }
     }
@@ -52,32 +54,41 @@ int main() {
         while (window.pollEvent(event)) {
             if (event.type == sf::Event::Closed)
                 window.close();
+            
+            // スペースキーでシミュレーションの開始/一時停止を切り替え
+            if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Space) {
+                simulationRunning = !simulationRunning;
+                printf("Simulation %s\n", simulationRunning ? "started" : "paused");
+            }
         }
 
-        // update velocity
-        for (int i = 0; i < totalParticles; ++i) {
-            std::array<double, 2> sph_force = delta_v(particles[i], particles);
-            std::array<double, 2> boundary_force = boundaryForce(particles[i], width, height);
+        // シミュレーションが実行中の場合のみ物理演算を行う
+        if (simulationRunning) {
+            // update velocity
+            for (int i = 0; i < totalParticles; ++i) {
+                std::array<double, 2> sph_force = delta_v(particles[i], particles);
+                std::array<double, 2> boundary_force = boundaryForce(particles[i], width, height);
+                
+                // 重力も追加
+                std::array<double, 2> gravity = {0.0, 9.8 * 0.04}; // 小さくスケール
+                
+                addVelocity(particles[i], sph_force);
+                addVelocity(particles[i], boundary_force);
+                addVelocity(particles[i], gravity);
+            }
             
-            // 重力も追加
-            std::array<double, 2> gravity = {0.0, 9.8 * 0.04}; // 小さくスケール
+            // update positions and apply boundary conditions
+            for (int i = 0; i < totalParticles; ++i) {
+                updatePosition(particles[i]);
+                applyBoundaryConditions(particles[i], width, height); // 境界条件適用
+                circles[i].setPosition(particles[i].position[0], particles[i].position[1]);
+            }
             
-            addVelocity(particles[i], sph_force);
-            addVelocity(particles[i], boundary_force);
-            addVelocity(particles[i], gravity);
-        }
-        
-        // update positions and apply boundary conditions
-        for (int i = 0; i < totalParticles; ++i) {
-            updatePosition(particles[i]);
-            applyBoundaryConditions(particles[i], width, height); // 境界条件適用
-            circles[i].setPosition(particles[i].position[0], particles[i].position[1]);
-        }
-        
-        // update positions of circles based on particles
-        for (int i = 0; i < totalParticles; ++i) {
-            updatePosition(particles[i]); // Update particle position
-            circles[i].setPosition(particles[i].position[0], particles[i].position[1]); // Update circle position
+            // update positions of circles based on particles
+            for (int i = 0; i < totalParticles; ++i) {
+                updatePosition(particles[i]); // Update particle position
+                circles[i].setPosition(particles[i].position[0], particles[i].position[1]); // Update circle position
+            }
         }
 
         window.clear();

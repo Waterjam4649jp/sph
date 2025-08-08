@@ -9,7 +9,7 @@ void setVelocity(Particle& p, const std::array<double, 2>& velocity) {
 
 void addVelocity(Particle& p, const std::array<double, 2>& acceleration) {
     for (int i = 0; i < 2; ++i) {
-        // v = v + a (描画フレームレートでdtは既に考慮済み)
+        // v = v + a*dt
         p.velocity[i] += acceleration[i];
     }
 }
